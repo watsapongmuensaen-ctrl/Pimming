@@ -1,0 +1,805 @@
+
+
+Typing game · HTML
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกมฝึกพิมพ์ดีด: พิมพ์เพลิน</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&family=Mitr:wght@400;500;600;700&display=swap" rel="stylesheet">
+ 
+    <style>
+        :root{
+            --bg-a: #FFF6E9;
+            --bg-b: #E8F6FF;
+            --bg-c: #FFE8CE;
+            --ink: #2B2140;
+            --ink-soft: #6B6280;
+            --coral: #FF6B4A;
+            --coral-dark: #E14F2E;
+            --leaf: #2FA968;
+            --leaf-soft: #E4F7EC;
+            --sun: #FFC93C;
+            --berry: #FF4D6D;
+            --berry-soft: #FFE9ED;
+            --sky: #3AA6D8;
+            --card: #FFFFFF;
+        }
+ 
+        * { box-sizing: border-box; }
+ 
+        html, body { height: 100%; overflow: hidden; }
+ 
+        body {
+            font-family: 'Kanit', sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 12% -5%, var(--bg-b) 0%, transparent 42%),
+                radial-gradient(circle at 105% 15%, var(--bg-c) 0%, transparent 38%),
+                var(--bg-a);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            height: 100dvh;
+        }
+ 
+        .app-wrap {
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            width: 100%;
+            max-width: 1150px;
+            margin: 0 auto;
+            padding: 0.6rem clamp(0.75rem, 2vw, 1.5rem);
+            gap: clamp(0.35rem, 1.2vh, 0.75rem);
+        }
+ 
+        .display-font { font-family: 'Mitr', 'Kanit', sans-serif; }
+ 
+        /* ---------- Hero ---------- */
+        .hero-mascot {
+            font-size: clamp(1.6rem, 3.2vh, 2.6rem);
+            display: inline-block;
+            animation: idle-bob 2.6s ease-in-out infinite;
+            filter: drop-shadow(0 6px 10px rgba(255,107,74,0.25));
+        }
+        @keyframes idle-bob {
+            0%, 100% { transform: translateY(0) rotate(-2deg); }
+            50% { transform: translateY(-8px) rotate(2deg); }
+        }
+ 
+        /* ---------- Level pills ---------- */
+        .level-pill {
+            position: relative;
+            font-weight: 600;
+            border: 2px solid transparent;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .level-pill:hover { transform: translateY(-2px); }
+        .level-pill.active {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 rgba(0,0,0,0.08);
+        }
+        .level-pill .pill-check {
+            display: none;
+        }
+        .level-pill.active .pill-check {
+            display: inline;
+        }
+ 
+        /* ---------- Stat chips ---------- */
+        .stat-chip {
+            background: var(--card);
+            border-radius: 16px;
+            box-shadow: 0 3px 0 rgba(43,33,64,0.06), 0 6px 18px rgba(43,33,64,0.05);
+        }
+        .stat-icon {
+            width: 30px; height: 30px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.95rem;
+            flex-shrink: 0;
+        }
+        .stat-num { font-weight: 600; }
+ 
+        /* ---------- Game card ---------- */
+        #game-container {
+            background: var(--card);
+            border: 3px solid #FFDFC2;
+            box-shadow: 0 10px 0 rgba(43,33,64,0.05), 0 20px 40px rgba(43,33,64,0.08);
+            position: relative;
+            overflow: hidden;
+            flex: 1 1 auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        #game-container.shake { animation: shake 0.3s; }
+        #game-container.flash-wrong { background: var(--berry-soft); border-color: var(--berry); }
+        #game-container.flash-win { background: var(--leaf-soft); border-color: var(--leaf); }
+ 
+        .game-top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.25rem;
+            flex: 0 0 auto;
+        }
+        .mascot-badge {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FFE3D3, #FFF3E4);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+        .mascot-badge.state-happy { animation: happy-pop 0.4s ease; }
+        .mascot-badge.state-sad { animation: sad-wobble 0.35s ease; }
+        .mascot-badge.state-win { animation: win-spin 0.7s ease; }
+        @keyframes happy-pop { 0% { transform: scale(1); } 40% { transform: scale(1.25) rotate(-6deg); } 100% { transform: scale(1); } }
+        @keyframes sad-wobble { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-10deg); } 75% { transform: rotate(10deg); } }
+        @keyframes win-spin { 0% { transform: scale(1) rotate(0); } 50% { transform: scale(1.4) rotate(15deg); } 100% { transform: scale(1) rotate(0); } }
+ 
+        .streak-badge {
+            display: flex; align-items: center; gap: 0.3rem;
+            background: #FFF6E0;
+            border: 2px solid var(--sun);
+            border-radius: 999px;
+            padding: 0.2rem 0.75rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #A6740A;
+            opacity: 0.45;
+            transition: opacity 0.2s ease;
+            flex-shrink: 0;
+        }
+        .streak-badge.lit { opacity: 1; }
+        .streak-badge.pop { animation: streak-pop 0.3s ease; }
+        @keyframes streak-pop { 0% { transform: scale(1); } 50% { transform: scale(1.18); } 100% { transform: scale(1); } }
+ 
+        .text-display {
+            white-space: pre-wrap;
+            line-height: 1.6;
+            font-size: clamp(1.1rem, 4vh, 2rem);
+            word-break: break-word;
+            overflow-y: auto;
+            max-height: 100%;
+        }
+        .char { color: #C9C2D6; transition: color 0.1s; }
+        .char.correct { color: var(--leaf); font-weight: 600; }
+        .char.incorrect { color: var(--berry); text-decoration: underline wavy; }
+        .char.current { border-bottom: 4px solid var(--coral); color: var(--ink); border-radius: 2px; }
+ 
+        .confetti-layer {
+            position: absolute; inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .confetti-piece {
+            position: absolute;
+            top: -10%;
+            font-size: 1.4rem;
+            animation-name: confetti-fall;
+            animation-timing-function: ease-in;
+            animation-fill-mode: forwards;
+        }
+        @keyframes confetti-fall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(320px) rotate(340deg); opacity: 0; }
+        }
+ 
+        /* ---------- Keyboard ---------- */
+        .keyboard {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(3px, 0.7vh, 6px);
+            max-width: 1050px;
+            margin: 0 auto;
+            background: #F1E9DE;
+            padding: clamp(6px, 1.4vh, 14px);
+            border-radius: 18px;
+            box-shadow: inset 0 2px 0 rgba(255,255,255,0.6), 0 10px 24px rgba(43,33,64,0.08);
+            width: 100%;
+            flex: 0 0 auto;
+        }
+        .key-row {
+            display: flex;
+            justify-content: center;
+            gap: clamp(3px, 0.7vh, 6px);
+        }
+        .key {
+            background: #ffffff;
+            border-radius: 9px;
+            padding: clamp(3px, 0.8vh, 8px) 4px;
+            min-width: 42px;
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 500;
+            box-shadow: 0 3px 0 #d8cfc0;
+            transition: all 0.1s;
+            user-select: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: clamp(34px, 7.2vh, 60px);
+        }
+ 
+        @media (max-width: 768px) {
+            .key { min-width: 20px; padding: 3px 2px; font-size: 0.75rem; }
+            .key .shift-char { font-size: 0.6rem; }
+            .key .base-char { font-size: 0.85rem; }
+            .finger-thumb { min-width: 110px !important; }
+            .key-enter, .key-shift { min-width: 40px !important; }
+        }
+ 
+        .key .shift-char { font-size: 0.75rem; color: var(--ink-soft); }
+        .key .base-char { font-size: 1rem; color: var(--ink); font-weight: 600; }
+ 
+        .key.active {
+            transform: translateY(2px);
+            box-shadow: 0 0 0 #d8cfc0;
+            background: #EDE6D9;
+        }
+        .key.glow {
+            background: linear-gradient(180deg, #FFE29A, #FFC93C);
+            box-shadow: 0 0 0 3px rgba(255,201,60,0.35), 0 3px 0 #CA8A04;
+            transform: translateY(-2px);
+            animation: bounce 0.5s infinite alternate;
+        }
+        .key.glow-shift {
+            background: linear-gradient(180deg, #A9D8FF, #3AA6D8);
+            box-shadow: 0 0 0 3px rgba(58,166,216,0.3), 0 3px 0 #2563eb;
+        }
+ 
+        /* สีกำหนดตามนิ้วมือ (ก้อย นาง กลาง ชี้) */
+        .finger-l4 { border-top: 4px solid #fca5a5; }
+        .finger-l3 { border-top: 4px solid #fdba74; }
+        .finger-l2 { border-top: 4px solid #fcd34d; }
+        .finger-l1 { border-top: 4px solid #86efac; }
+        .finger-r1 { border-top: 4px solid #6ee7b7; }
+        .finger-r2 { border-top: 4px solid #93c5fd; }
+        .finger-r3 { border-top: 4px solid #c4b5fd; }
+        .finger-r4 { border-top: 4px solid #f9a8d4; }
+        .finger-thumb { border-top: 4px solid #cbd5e1; width: 100%; max-width: 900px; }
+ 
+        .key-enter { min-width: 80px; background: #DCEEFF; }
+        .key-shift { min-width: 90px; background: #F0EBE0; }
+ 
+        @keyframes bounce {
+            from { transform: translateY(-2px); }
+            to { transform: translateY(-6px); }
+        }
+        .shake { animation: shake 0.3s; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+ 
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+        }
+    </style>
+</head>
+ 
+<body>
+ 
+    <div class="app-wrap">
+        <!-- Header -->
+        <div class="text-center flex-shrink-0">
+            <span class="hero-mascot">🦉</span>
+            <h1 class="display-font font-bold" style="color:var(--coral-dark); font-size:clamp(1.25rem,2.6vh,1.75rem); line-height:1.1;">พิมพ์เพลิน</h1>
+            <p style="color:var(--ink-soft); font-size:clamp(0.7rem,1.5vh,0.85rem);">เกมฝึกพิมพ์ดีดภาษาไทย สำหรับน้องๆ ประถม · โดยครูวรรษพงษ์ หมื่นแสน</p>
+        </div>
+ 
+        <!-- Level Selector -->
+        <div class="flex flex-wrap justify-center gap-2 flex-shrink-0">
+            <button onclick="startGame(1)" id="level-btn-1" class="level-pill px-4 py-1 rounded-full shadow transition text-sm" style="background:#DFF6E8; color:#1B7A45;">
+                <span class="pill-check">✓ </span>🌱 ระดับ 1: คำพื้นฐาน
+            </button>
+            <button onclick="startGame(2)" id="level-btn-2" class="level-pill px-4 py-1 rounded-full shadow transition text-sm" style="background:#DFF0FF; color:#1660A8;">
+                <span class="pill-check">✓ </span>📖 ระดับ 2: เรื่องราวสั้นๆ
+            </button>
+            <button onclick="startGame(3)" id="level-btn-3" class="level-pill px-4 py-1 rounded-full shadow transition text-sm" style="background:#EEE2FF; color:#6B31C4;">
+                <span class="pill-check">✓ </span>📚 ระดับ 3: บทความยาว
+            </button>
+        </div>
+ 
+        <!-- Stats Dashboard -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 w-full flex-shrink-0">
+            <div class="stat-chip px-3 py-2 flex items-center gap-2">
+                <div class="stat-icon" style="background:#DFF0FF;">📝</div>
+                <div>
+                    <div class="text-xs font-medium leading-tight" style="color:var(--ink-soft)">พิมพ์แล้ว (คำ)</div>
+                    <div class="text-lg stat-num display-font leading-tight" style="color:var(--sky)" id="stat-words">0</div>
+                </div>
+            </div>
+            <div class="stat-chip px-3 py-2 flex items-center gap-2">
+                <div class="stat-icon" style="background:var(--leaf-soft);">🎯</div>
+                <div>
+                    <div class="text-xs font-medium leading-tight" style="color:var(--ink-soft)">ความแม่นยำ</div>
+                    <div class="text-lg stat-num display-font leading-tight" style="color:var(--leaf)" id="stat-correct-pct">0%</div>
+                </div>
+            </div>
+            <div class="stat-chip px-3 py-2 flex items-center gap-2">
+                <div class="stat-icon" style="background:var(--berry-soft);">❌</div>
+                <div>
+                    <div class="text-xs font-medium leading-tight" style="color:var(--ink-soft)">พิมพ์ผิด (ครั้ง)</div>
+                    <div class="text-lg stat-num display-font leading-tight" style="color:var(--berry)" id="stat-wrong-count">0</div>
+                </div>
+            </div>
+            <div class="stat-chip px-3 py-2 flex items-center gap-2">
+                <div class="stat-icon" style="background:#FFF1D6;">📉</div>
+                <div>
+                    <div class="text-xs font-medium leading-tight" style="color:var(--ink-soft)">สัดส่วนที่ผิด</div>
+                    <div class="text-lg stat-num display-font leading-tight" style="color:#C9820A" id="stat-wrong-pct">0%</div>
+                </div>
+            </div>
+        </div>
+ 
+        <!-- Game Area -->
+        <div id="game-container" class="px-4 py-2 md:px-6 md:py-3 rounded-3xl text-center">
+            <div class="confetti-layer" id="confetti-layer"></div>
+            <div class="game-top-bar">
+                <div class="mascot-badge" id="mascot-badge">🦉</div>
+                <div class="streak-badge" id="streak-badge">🔥 ต่อเนื่อง <span id="streak-count">0</span></div>
+            </div>
+            <div id="text-display" class="text-display font-medium" style="color:var(--ink)">กดเลือกระดับเพื่อเริ่มเล่น!</div>
+            <p class="flex-shrink-0" style="color:var(--ink-soft); font-size:clamp(0.65rem,1.3vh,0.8rem); margin-top:0.25rem;">พิมพ์ตามตัวอักษรที่ปรากฏด้านบน หากพิมพ์ผิดหน้าจอจะสั่นและมีเสียงเตือน</p>
+        </div>
+ 
+        <!-- Virtual Keyboard -->
+        <div class="keyboard flex-shrink-0" id="keyboard"></div>
+    </div>
+ 
+    <script>
+        // คลังคำศัพท์และบทความ
+        const words = {
+            1: [
+                "ฟหกด", "เาสว", "แมว", "โรงเรียน", "ดินสอ", "คุณครู", "กระเป๋า", "เพื่อน", "สมุด", "ไม้บรรทัด",
+                "โต๊ะ", "เก้าอี้", "หนังสือ", "ยางลบ", "ดอกไม้", "หมา", "นก", "ปลา", "ไก่", "หมู",
+                "เป็ด", "ช้าง", "ม้า", "วัว", "ควาย", "ลิง", "หมี", "เสือ", "สิงโต", "บ้าน",
+                "วัด", "ต้นไม้", "ใบไม้", "น้ำ", "ฟ้า", "ดิน", "หิน", "ทราย", "ดาว", "เดือน",
+                "ตะวัน", "ภูเขา", "ทะเล", "แม่น้ำ", "ป่า", "ถนน", "รถ", "เรือ", "เครื่องบิน", "รถไฟ",
+                "จักรยาน", "พ่อ", "แม่", "พี่", "น้อง", "ปู่", "ย่า", "ตา", "ยาย", "ลุง",
+                "ป้า", "น้า", "อา", "หมอ", "ตำรวจ", "ทหาร", "ชาวนา", "ข้าว", "ขนม", "นม",
+                "ผลไม้", "ผัก", "กล้วย", "ส้ม", "แตงโม", "มะม่วง", "แอปเปิล", "สตรอว์เบอร์รี", "เตียง", "ตู้",
+                "ทีวี", "พัดลม", "แอร์", "ปากกา", "เสื้อ", "กางเกง", "กระโปรง", "รองเท้า", "ถุงเท้า", "หมวก",
+                "แว่นตา", "นาฬิกา", "แหวน", "สร้อย", "หวี", "แปรงสีฟัน", "ยาสีฟัน", "สบู่", "จาน", "ชาม",
+                "ช้อน", "แก้วน้ำ", "หม้อ", "กระทะ", "รุ้งกินน้ำ", "ก้อนเมฆ", "สายฝน"
+            ],
+            2: [
+                "ฉัน ไป โรงเรียน ทุกวัน", "แม่ ซื้อ ขนม มา ฝาก", "เรา เล่น ฟุตบอล ที่ สนาม", "นก จิ๊บๆ ร้องเพลง", "ช้าง กิน กล้วย เป็น อาหาร",
+                "พ่อ ขับ รถ ไป ทำงาน", "พี่ ชอบ อ่าน นิทาน", "น้อง วาด รูป สวยงาม", "ฉัน ชอบ กิน ส้ม", "แมว จับ หนู ใน ครัว",
+                "หมา เห่า เสียงดัง มาก", "นก บิน บน ท้องฟ้า", "ปลา ว่าย น้ำ ใน คลอง", "ยาย รดน้ำ ต้นไม้ หน้า บ้าน", "ตา เลี้ยง ไก่ หลาย ตัว",
+                "ลุง ปลูก ผัก สวน ครัว", "ป้า ทำ อาหาร อร่อย", "น้า ซื้อ เสื้อผ้า ใหม่", "อา ไป เที่ยว ทะเล", "ครู สอน หนังสือ เก่ง",
+                "นักเรียน ตั้งใจ เรียน ดี", "ฝน ตก หนัก มาก", "แดด ออก ร้อน จัง", "ลม พัด เย็น สบาย", "ท้องฟ้า สดใส สวยงาม",
+                "ก้อนเมฆ สีขาว ลอย ไป", "รุ้ง กิน น้ำ เจ็ด สี", "พระอาทิตย์ ตก ดิน แล้ว", "พระจันทร์ เต็ม ดวง สว่าง", "ดาว เต็ม ฟ้า ตอน กลางคืน",
+                "ฉัน รัก พ่อ แม่ มาก", "ครอบครัว ของ เรา มี ความสุข", "เพื่อน เล่น ด้วยกัน สนุก", "เรา แบ่ง ขนม ให้ เพื่อน", "น้อง ร้องไห้ หา แม่",
+                "พี่ หัวเราะ ชอบใจ", "หมี นอน หลับ ใน ถ้ำ", "กระต่าย กระโดด ไป มา", "เต่า คลาน ช้า ต้วมเตี้ยม", "งู เลื้อย ไป หา อาหาร",
+                "กบ ร้อง อ๊บอ๊บ ใน นา", "ลูก หมู ร้อง อู๊ดอู๊ด", "ไก่ ขัน ตอน เช้า ตรู่", "เป็ด ว่ายน้ำ ใน สระ", "ม้า วิ่ง แข่ง กัน",
+                "รถไฟ ปู๊นปู๊น มา แล้ว", "เครื่องบิน บิน สูง ลิบ", "เรือ แล่น กลาง ทะเล", "ฉัน ขี่ จักรยาน สอง ล้อ", "ลุง ขับ รถ บรรทุก"
+            ],
+            3: [
+                "กาลครั้งหนึ่ง นานมาแล้ว \nมีเต่า กับกระต่าย วิ่งแข่งกัน ในป่าใหญ่ \nกระต่ายประมาท จึงแอบนอนหลับ ใต้ต้นไม้ \nเต่าพยายาม เดินต่อไป ไม่ยอมหยุดพัก \nในที่สุด เต่าก็เข้าเส้นชัย และเป็นผู้ชนะ",
+                "การออมเงิน เป็นสิ่งที่ดีมาก สำหรับเด็กๆ \nเราควร หยอดกระปุกออมสิน ในทุกๆ วัน \nเมื่อกระปุกเต็ม ก็นำเงิน ไปฝากธนาคาร \nเพื่อเก็บเงินไว้ใช้ ในยามที่เราจำเป็น \nการรู้จักประหยัด จะทำให้เรา ไม่ลำบากในอนาคต",
+                "ลูกหมูสามตัว ตัดสินใจ สร้างบ้าน คนละหลัง \nตัวแรกใช้ฟาง ตัวที่สอง ใช้ไม้สร้างบ้าน \nส่วนตัวที่สาม ขยันกว่าใคร จึงใช้อิฐสร้างบ้าน \nเมื่อหมาป่ามาเป่า บ้านอิฐจึงแข็งแรง ไม่พังทลาย \nหมาป่าหมดแรง และต้องยอมแพ้ เดินหนีไปในที่สุด",
+                "ผักและผลไม้ มีวิตามินมากมาย หลายชนิด \nช่วยให้ร่างกายแข็งแรง และขับถ่ายได้สะดวก \nเด็กๆ ทุกคน ควรรับประทานผัก ในทุกๆ มื้อ \nเพื่อให้ร่างกาย เจริญเติบโต และมีภูมิคุ้มกัน \nถ้าเรากินอาหาร ที่มีประโยชน์ เราก็จะไม่ป่วยง่าย",
+                "การดื่มนม ในตอนเช้า ช่วยให้สมองแจ่มใส \nทำให้กระดูก และฟันของเรา แข็งแรงมากยิ่งขึ้น \nนมวัวมีโปรตีน และแคลเซียมสูง มากมาย \nเป็นอาหาร ที่เหมาะสม สำหรับเด็กทุกคน \nอย่าลืม ดื่มนมอย่างน้อย วันละสองแก้ว นะครับ",
+                "ครอบครัวของฉัน มีคุณพ่อ คุณแม่ พี่ชาย และตัวฉัน \nในวันหยุดสุดสัปดาห์ เรามักจะ ไปเที่ยวสวนสัตว์ \nฉันชอบดู ยีราฟคอยาว และช้างตัวใหญ่ กินกล้วย \nพวกเราเดินเล่น ถ่ายรูป และกินไอศกรีม ด้วยกัน \nครอบครัวของเรา มีความสุข และรักกันมาก",
+                "การออกกำลังกาย ทำให้ร่างกาย ของเราแข็งแรง \nเราควรวิ่งเล่น กระโดดเชือก หรือเต้นแอโรบิก \nอย่างน้อยวันละ สามสิบนาที เพื่อสุขภาพที่ดี \nเพื่อให้เหงื่อออก ร่างกายสดชื่น และกระปรี้กระเปร่า \nเด็กๆ ที่ชอบออกกำลังกาย จะอารมณ์ดี ตลอดวัน",
+                "ก่อนนอนทุกคืน เราต้องแปรงฟัน ให้สะอาด \nเพื่อป้องกันฟันผุ และแมงกินฟัน ในช่องปาก \nบีบยาสีฟัน ลงบนแปรง เท่าเมล็ดถั่วเขียว \nแล้วแปรงขึ้นลง ให้สะอาด ทั่วทุกซอกทุกมุม \nตื่นเช้ามา ลมหายใจของเรา จะได้หอมสดชื่น",
+                "ฉันมีสุนัขแสนรู้ ตัวหนึ่ง ชื่อว่าเจ้าด่าง \nมันชอบวิ่งเก็บ ลูกบอลสีแดง ที่ฉันโยนไปไกลๆ \nเวลาที่ฉัน กลับมาจากโรงเรียน ในตอนเย็น \nมันจะกระดิกหาง และวิ่งมารอรับ ที่หน้าบ้านเสมอ \nเจ้าด่าง เป็นเพื่อนเล่น ที่ซื่อสัตย์ ของฉัน",
+                "ประเทศไทยของเรา แบ่งออกเป็น สามฤดูหลักๆ \nคือฤดูร้อน ฤดูฝน และฤดูหนาว ที่แสนเย็นสบาย \nในฤดูฝน ต้นไม้ใบหญ้า จะเขียวชอุ่ม สวยงาม \nส่วนฤดูหนาว ผู้คนจะสวมเสื้อกันหนาว สีสันสดใส \nฉันรักประเทศไทย เพราะมีธรรมชาติ ที่อุดมสมบูรณ์",
+                "ราชสีห์ตัวใหญ่ กำลังนอนหลับ อยู่ใต้ต้นไม้ \nมีหนูตัวหนึ่ง วิ่งซุกซน ข้ามตัวของราชสีห์ \nราชสีห์ตื่นขึ้นมา ด้วยความโกรธ และจับหนูไว้ \nหนูร้องขอชีวิต และสัญญาว่า จะกลับมาตอบแทนคุณ \nต่อมา หนูก็ได้ช่วยกัดบ่วงแร้ว ช่วยชีวิตราชสีห์ไว้ได้จริงๆ",
+                "กบฝูงหนึ่ง อาศัยอยู่ในบึง และอยากได้เจ้านาย \nเทวดาจึง ทิ้งขอนไม้ท่อนใหญ่ ลงมาให้พวกมัน \nกบไม่พอใจ และเรียกร้อง อยากได้เจ้านายที่เก่งกว่านี้ \nเทวดาโมโห จึงส่งนกกระสา ลงมาที่บึงแห่งนั้น \nนกกระสา จึงจิกกินกบ จนหมดบึงในเวลาไม่นาน",
+                "มดงานตัวน้อย ขยันหาอาหาร เก็บไว้ในฤดูร้อน \nแต่ตั๊กแตน เอาแต่ร้องเพลง และเล่นสนุกไปวันๆ \nพอถึงฤดูหนาว อากาศหนาวเย็น ตั๊กแตนไม่มีอาหารกิน \nมันจึงต้อง เดินทางไปขอแบ่งอาหาร จากฝูงมด \nนิทานเรื่องนี้ สอนให้เรารู้จัก เตรียมพร้อมสำหรับอนาคต",
+                "สุนัขจิ้งจอกเจ้าเล่ห์ เห็นกาคาบชิ้นเนื้อ บินมาเกาะกิ่งไม้ \nมันจึงแกล้งพูดชมเชย ว่ากามีเสียงร้อง ที่ไพเราะมาก \nเจ้ากาหลงกล ดีใจที่ถูกชม จึงอ้าปากร้องเพลง \nชิ้นเนื้อแสนอร่อย จึงตกลงมา ให้สุนัขจิ้งจอกกิน \nเราไม่ควร หลงเชื่อคำเยินยอ ของคนแปลกหน้า",
+                "เด็กเลี้ยงแกะคนหนึ่ง ชอบโกหก ชาวบ้านว่ามีหมาป่ามากินแกะ \nชาวบ้านตกใจ วิ่งมาช่วย แต่ก็พบว่า ถูกเด็กหลอก \nวันหนึ่ง หมาป่าตัวใหญ่ วิ่งเข้ามาในฝูงแกะจริงๆ \nเขาตะโกนเสียงดัง ขอให้คนช่วย แต่ไม่มีใครเชื่อเขาอีกเลย \nคนโกหก มักจะไม่มีใครเชื่อถือ แม้จะพูดความจริงก็ตาม",
+                "ชายชาวนาคนหนึ่ง เลี้ยงห่าน ที่ออกไข่เป็นทองคำ วันละหนึ่งฟอง \nเขาเกิดความโลภ อยากได้ไข่ทองคำ ทั้งหมดในคราวเดียว \nจึงตัดสินใจ ใช้มีดผ่าท้องห่าน เพื่อเอาไข่ทองคำ \nแต่เมื่อผ่าออกดู กลับไม่พบไข่ทองคำ เลยแม้แต่ฟองเดียว \nความโลภมาก มักจะทำให้ ลาภที่มีอยู่หายไป",
+                "หมาป่าหิวโซ เห็นลูกแกะตัวน้อย กำลังกินน้ำ อยู่ที่ริมลำธาร \nมันจึงหาเรื่อง กล่าวหาว่า ลูกแกะทำน้ำขุ่น \nลูกแกะพยายาม อธิบายความจริง ว่าตนอยู่ปลายน้ำ \nแต่หมาป่าไม่ยอมฟังเหตุผล และกระโจนเข้าจับลูกแกะ \nคนพาล มักจะหาข้ออ้าง เพื่อรังแกผู้อื่นเสมอ",
+                "การอ่านหนังสือ เป็นประจำ ช่วยเปิดโลกกว้าง ให้กับเรา \nทำให้เรา ได้รับความรู้ใหม่ๆ และฝึกจินตนาการ \nในห้องสมุดของโรงเรียน มีหนังสือนิทาน สนุกๆ มากมาย \nฉันชอบ ชวนเพื่อนๆ ไปยืมหนังสือ มาอ่านด้วยกัน ทุกสัปดาห์ \nหนังสือคือเพื่อนที่ดี ที่ให้ทั้งความรู้ และความเพลิดเพลิน",
+                "วันหยุดสุดสัปดาห์ที่จะถึงนี้ คุณพ่อสัญญาว่า จะพาไปเที่ยว \nเราจะไป ทัศนศึกษา ที่พิพิธภัณฑ์วิทยาศาสตร์ แห่งชาติ \nฉันรู้สึกตื่นเต้น ที่จะได้เห็น โครงกระดูกไดโนเสาร์ ของจริง \nและยังจะได้ดู การทดลองวิทยาศาสตร์ ที่น่าตื่นตาตื่นใจ \nฉันจะเตรียม สมุดจดบันทึก ไปจดความรู้ใหม่ๆ กลับมาด้วย",
+                "ดาวเคราะห์ ในระบบสุริยะของเรา มีทั้งหมด แปดดวง \nโลกที่เราอาศัยอยู่นี้ เป็นดาวเคราะห์ ลำดับที่สาม \nดวงอาทิตย์ เป็นศูนย์กลาง ที่ให้แสงสว่าง และความอบอุ่น \nฉันชอบเรียน วิชาดาราศาสตร์ เรื่องอวกาศ และดวงดาวมากๆ \nความฝันของฉัน คือการได้เป็น นักบินอวกาศ ในอนาคต",
+                "กา หิวน้ำ พบ เหยือกน้ำ ใบหนึ่ง ตั้งอยู่ \nมัน พยายาม กิน น้ำ แต่ ปาก เหยือก แคบ เกินไป \nมัน จึง คาบ หิน ก้อนเล็กๆ ใส่ ลงใน เหยือก \nเมื่อ ใส่ หิน มากขึ้น น้ำ ก็ ล้น ขึ้นมา ให้ กิน \nความพยายาม อยู่ที่ไหน ความสำเร็จ อยู่ที่นั่น",
+                "ชาวนา พบ งูเห่า นอน แข็งตาย อยู่ กลาง ทุ่ง \nเขา สงสาร จึง อุ้ม มัน ขึ้นมา ให้ ความอบอุ่น \nเมื่อ งูเห่า ฟื้น มัน ตกใจ จึง กัด ชาวนา \nก่อน ตาย ชาวนา รำพึง ว่า ไม่ควร สงสาร สัตว์ร้าย \nทำคุณ บูชาโทษ เป็น อย่างนี้ นี่เอง",
+                "สุนัข คาบ ชิ้นเนื้อ ข้าม สะพาน เดิน กลับ บ้าน \nมัน ก้ม มอง เงา ใน น้ำ เห็น สุนัข อีก ตัว \nซึ่ง คาบ ชิ้นเนื้อ ที่ ดู ใหญ่ กว่า ของ ตัวเอง \nมัน จึง เห่า เพื่อ แย่ง เนื้อ ชิ้น นั้น มา \nชิ้นเนื้อ ใน ปาก จึง ตก น้ำ หาย ไป หมดเลย",
+                "ลิง สอง ตัว ทะเลาะ กัน เรื่อง แบ่ง เนยแข็ง \nตาชั่ง ของ แมว เจ้าเล่ห์ จึง เอียง ไปมา \nแมว กัด กิน เนยแข็ง อ้างว่า เพื่อให้ เท่ากัน \nจน ในที่สุด เนยแข็ง ก็ หมด ลง อย่าง รวดเร็ว \nลิง ทั้งสอง จึง ไม่ได้ กิน อะไร เลย แม้แต่น้อย",
+                "ชาวนา เลี้ยง ลา แก่ ไว้ ใช้งาน ใน ฟาร์ม \nวันหนึ่ง ลา ก้าวพลาด ตก ลงไป ใน บ่อ ลึก \nชาวนา ถอดใจ จึง โยน ดิน กลบ บ่อ ทิ้ง \nลา สะบัด ดิน และ เหยียบ ดิน ให้ แน่น \nจน สามารถ ปีน ขึ้น จาก บ่อ ได้ อย่าง ปลอดภัย",
+                "พระอาทิตย์ กับ ลม แข่ง กัน ทดสอบ พลัง \nลม พัด แรง ชาย ก็ ยิ่ง จับ เสื้อคลุม แน่น \nพระอาทิตย์ จึง ส่อง แสง ร้อน อบอ้าว ลงมา \nชาย ทน ไม่ไหว จึง ถอด เสื้อคลุม ออก ในที่สุด \nความอ่อนโยน มักจะ ชนะ ความรุนแรง เสมอ",
+                "หนู เมือง ไป เยี่ยม หนู นา ที่ ชนบท \nหนู นา เลี้ยง อาหาร แบบ ธรรมดา เรียบง่าย \nหนู เมือง ชวน ไป กิน ของ อร่อย ที่ บ้าน \nแต่ ต้อง คอย วิ่ง หนี แมว ตลอด เวลา \nหนู นา จึง ขอกลับ ไป อยู่ นา อย่าง สงบ ดีกว่า",
+                "นกอินทรี บิน จับ เต่า หอย ได้ หนึ่ง ตัว \nมัน บิน ขึ้น สูง บน ท้องฟ้า อย่าง รวดเร็ว \nแล้ว ปล่อย เต่า ตกลง ใส่ โขดหิน ด้านล่าง \nกระดอง เต่า แตก ออก เป็น เสี่ยง ใน พริบตา \nนกอินทรี จึง ได้ กิน เนื้อ เต่า อย่าง เอร็ดอร่อย",
+                "มด เดิน ไป ดื่ม น้ำ ที่ ริม ลำธาร \nมัน ลื่น พลัด ตก ลงไป ใน น้ำ เชี่ยว \nนกพิราบ เห็น จึง โยน ใบไม้ ลงไป ให้ \nมด เกาะ ใบไม้ รอดชีวิต มาได้ อย่าง ปาฏิหาริย์ \nต่อมา มด ก็ กัด เท้า นายพราน ช่วย นก ไว้ ได้",
+                "พ่อค้า ขับ ลา บรรทุก เกลือ ข้าม แม่น้ำ \nลา ลื่น ตก น้ำ เกลือ จึง ละลาย หาย ไป \nลา รู้สึก เบา สบาย เมื่อ ลุก ขึ้น ยืน \nวันต่อมา ลา จึง แกล้ง ลื่น ตก น้ำ อีก \nพ่อค้า รู้ทัน จึง เปลี่ยน เป็น บรรทุก นุ่น แทน"
+            ]
+        };
+ 
+        // โครงสร้างคีย์บอร์ด (Layout) แป้นพิมพ์เกษมณี
+        // แก้ไข: เพิ่มปุ่ม ่ (ไม้เอก) และ ้ (ไม้โท) ที่แป้นเหย้า J และ H ซึ่งขาดหายไปจากต้นฉบับ
+        // พร้อมปุ่ม Shift ที่ถูกต้องตามผังจริง: J+Shift = ๋ (ไม้จัตวา), และ ี+Shift = ๊ (ไม้ตรี) อยู่แล้วในแถวที่ 2
+        const keyboardLayout = [
+            [
+                { base: '_', shift: '%', finger: 'l4' }, { base: 'ๅ', shift: '+', finger: 'l4' }, { base: '/', shift: '๑', finger: 'l4' },
+                { base: '-', shift: '๒', finger: 'l3' }, { base: 'ภ', shift: '๓', finger: 'l2' }, { base: 'ถ', shift: '๔', finger: 'l1' },
+                { base: 'ุ', shift: 'ู', finger: 'l1' }, { base: 'ึ', shift: '฿', finger: 'r1' }, { base: 'ค', shift: '๕', finger: 'r1' },
+                { base: 'ต', shift: '๖', finger: 'r2' }, { base: 'จ', shift: '๗', finger: 'r3' }, { base: 'ข', shift: '๘', finger: 'r4' },
+                { base: 'ช', shift: '๙', finger: 'r4' }
+            ],
+            [
+                { base: 'ๆ', shift: '๐', finger: 'l4' }, { base: 'ไ', shift: '"', finger: 'l3' }, { base: 'ำ', shift: 'ฎ', finger: 'l2' },
+                { base: 'พ', shift: 'ฑ', finger: 'l1' }, { base: 'ะ', shift: 'ธ', finger: 'l1' }, { base: 'ั', shift: 'ํ', finger: 'r1' },
+                { base: 'ี', shift: '๊', finger: 'r1' }, { base: 'ร', shift: 'ณ', finger: 'r2' }, { base: 'น', shift: 'ฯ', finger: 'r3' },
+                { base: 'ย', shift: 'ญ', finger: 'r4' }, { base: 'บ', shift: 'ฐ', finger: 'r4' }, { base: 'ล', shift: ',', finger: 'r4' },
+                { base: 'ฃ', shift: 'ฅ', finger: 'r4' }
+            ],
+            [
+                { base: 'ฟ', shift: 'ฤ', finger: 'l4' }, { base: 'ห', shift: 'ฆ', finger: 'l3' }, { base: 'ก', shift: 'ฏ', finger: 'l2' },
+                { base: 'ด', shift: 'โ', finger: 'l1' }, { base: 'เ', shift: 'ฌ', finger: 'l1' },
+                { base: '้', shift: '็', finger: 'r1' }, { base: '่', shift: '๋', finger: 'r1' },
+                { base: 'า', shift: 'ษ', finger: 'r2' }, { base: 'ส', shift: 'ศ', finger: 'r3' }, { base: 'ว', shift: 'ซ', finger: 'r4' },
+                { base: 'ง', shift: '.', finger: 'r4' },
+                { base: 'enter', shift: 'enter', finger: 'key-enter' }
+            ],
+            [
+                { base: 'shift', shift: 'shift', finger: 'key-shift' }, { base: 'ผ', shift: 'ฉ', finger: 'l4' }, { base: 'ป', shift: 'ฮ', finger: 'l3' },
+                { base: 'แ', shift: 'ฺ', finger: 'l2' }, { base: 'อ', shift: '์', finger: 'l1' }, { base: 'ิ', shift: '?', finger: 'l1' },
+                { base: 'ื', shift: 'ฒ', finger: 'r1' }, { base: 'ท', shift: 'ฬ', finger: 'r1' }, { base: 'ม', shift: 'ฦ', finger: 'r2' },
+                { base: 'ใ', shift: 'ๆ', finger: 'r3' }, { base: 'ฝ', shift: 'ๆ', finger: 'r4' }, { base: 'shift', shift: 'shift', finger: 'key-shift' }
+            ],
+            [
+                { base: ' ', shift: ' ', finger: 'finger-thumb' } // Spacebar
+            ]
+        ];
+ 
+        let currentText = "";
+        let currentIndex = 0;
+        let isPlaying = false;
+        let currentLevel = 1; // จำระดับปัจจุบัน
+        let previousText = ""; // จำคำก่อนหน้าเพื่อไม่ให้สุ่มซ้ำ
+        let streak = 0; // จำนวนตัวอักษรที่พิมพ์ถูกต่อเนื่อง
+ 
+        // ระบบเก็บสถิติแยกตามระดับ
+        let stats = {
+            1: { words: 0, correct: 0, wrong: 0 },
+            2: { words: 0, correct: 0, wrong: 0 },
+            3: { words: 0, correct: 0, wrong: 0 }
+        };
+ 
+        // อัปเดตกระดานคะแนน
+        function updateStatsUI() {
+            const currentStats = stats[currentLevel];
+            const total = currentStats.correct + currentStats.wrong;
+ 
+            const correctPercent = total > 0 ? Math.round((currentStats.correct / total) * 100) : 0;
+            const wrongPercent = total > 0 ? Math.round((currentStats.wrong / total) * 100) : 0;
+ 
+            document.getElementById('stat-words').innerText = currentStats.words;
+            document.getElementById('stat-correct-pct').innerText = correctPercent + '%';
+            document.getElementById('stat-wrong-count').innerText = currentStats.wrong;
+            document.getElementById('stat-wrong-pct').innerText = wrongPercent + '%';
+        }
+ 
+        // อัปเดตแถบปุ่มเลือกระดับให้โชว์ว่าอันไหน active
+        function updateLevelButtons() {
+            [1, 2, 3].forEach(lv => {
+                document.getElementById('level-btn-' + lv).classList.toggle('active', lv === currentLevel);
+            });
+        }
+ 
+        // อัปเดตตัวนับ combo/streak
+        function updateStreakUI(popped) {
+            const badge = document.getElementById('streak-badge');
+            document.getElementById('streak-count').innerText = streak;
+            badge.classList.toggle('lit', streak > 0);
+            if (popped) {
+                badge.classList.remove('pop');
+                void badge.offsetWidth; // reflow เพื่อเล่นแอนิเมชันซ้ำได้
+                badge.classList.add('pop');
+            }
+        }
+ 
+        // ตั้งอารมณ์มาสคอต
+        function setMascotState(state) {
+            const badge = document.getElementById('mascot-badge');
+            badge.classList.remove('state-happy', 'state-sad', 'state-win');
+            void badge.offsetWidth;
+            if (state) badge.classList.add(state);
+        }
+ 
+        // เอฟเฟกต์คอนเฟตตี้ตอนพิมพ์จบ
+        function fireConfetti() {
+            const layer = document.getElementById('confetti-layer');
+            const pieces = ['🎉', '⭐', '✨', '🌟', '🎈'];
+            for (let i = 0; i < 16; i++) {
+                const span = document.createElement('span');
+                span.className = 'confetti-piece';
+                span.innerText = pieces[Math.floor(Math.random() * pieces.length)];
+                span.style.left = Math.random() * 100 + '%';
+                const duration = 0.9 + Math.random() * 0.6;
+                span.style.animationDuration = duration + 's';
+                span.style.animationDelay = (Math.random() * 0.15) + 's';
+                layer.appendChild(span);
+                setTimeout(() => span.remove(), (duration + 0.2) * 1000);
+            }
+        }
+ 
+        // สร้างคีย์บอร์ด HTML
+        function renderKeyboard() {
+            const kbContainer = document.getElementById('keyboard');
+            kbContainer.innerHTML = '';
+ 
+            keyboardLayout.forEach(row => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'key-row';
+ 
+                row.forEach(key => {
+                    const keyDiv = document.createElement('div');
+                    keyDiv.className = `key finger-${key.finger}`;
+ 
+                    if (key.base === ' ') {
+                        keyDiv.innerHTML = `<span class="base-char">เว้นวรรค (Space)</span>`;
+                        keyDiv.id = 'key-Space';
+                    } else if (key.base === 'enter') {
+                        keyDiv.innerHTML = `<span class="base-char">Enter ↵</span>`;
+                        keyDiv.id = 'key-Enter';
+                        keyDiv.classList.add('key-enter');
+                    } else if (key.base === 'shift') {
+                        keyDiv.innerHTML = `<span class="base-char">Shift</span>`;
+                        keyDiv.classList.add('key-shift-btn', 'key-shift');
+                    } else {
+                        keyDiv.innerHTML = `<span class="shift-char">${key.shift}</span><span class="base-char">${key.base}</span>`;
+                        keyDiv.id = `key-${key.base}`; // ใช้ base char เป็น ID สำหรับหาปุ่ม
+                    }
+ 
+                    rowDiv.appendChild(keyDiv);
+                });
+ 
+                kbContainer.appendChild(rowDiv);
+            });
+        }
+ 
+        // ระบบเสียง (Web Audio API)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+ 
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+ 
+            if (type === 'correct') {
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.1);
+            } else if (type === 'wrong') {
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.2);
+            } else if (type === 'win') {
+                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(400, audioCtx.currentTime);
+                oscillator.frequency.setValueAtTime(600, audioCtx.currentTime + 0.1);
+                oscillator.frequency.setValueAtTime(800, audioCtx.currentTime + 0.2);
+                gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.5);
+            } else if (type === 'combo') {
+                oscillator.type = 'square';
+                oscillator.frequency.setValueAtTime(1046, audioCtx.currentTime);
+                gainNode.gain.setValueAtTime(0.06, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.12);
+            }
+        }
+ 
+        // ฟังก์ชันเริ่มด่านและสุ่มคำแบบไม่ให้ซ้ำ
+        function startGame(level) {
+            currentLevel = level;
+            const levelWords = words[level];
+ 
+            // สุ่มจนกว่าจะไม่ได้คำ/บทความเดิมที่เพิ่งพิมพ์ไป
+            let randomIndex;
+            do {
+                randomIndex = Math.floor(Math.random() * levelWords.length);
+            } while (levelWords[randomIndex] === previousText && levelWords.length > 1);
+ 
+            currentText = levelWords[randomIndex];
+            previousText = currentText; // เก็บไว้เช็คในรอบถัดไป
+            currentIndex = 0;
+            isPlaying = true; // เปิดสถานะเกมให้สามารถพิมพ์ได้
+ 
+            updateStatsUI(); // ดึงสถิติของด่านปัจจุบันมาแสดง
+            updateLevelButtons();
+ 
+            // ปรับขนาดตัวอักษรตามความยาวบทความ
+            const displayDiv = document.getElementById('text-display');
+            if(level === 3) {
+                displayDiv.style.fontSize = 'clamp(0.95rem, 2.6vh, 1.3rem)';
+                displayDiv.style.textAlign = 'left';
+                displayDiv.style.lineHeight = '1.5';
+            } else {
+                displayDiv.style.fontSize = 'clamp(1.2rem, 4.5vh, 2.2rem)';
+                displayDiv.style.textAlign = 'center';
+                displayDiv.style.lineHeight = '1.6';
+            }
+ 
+            renderText();
+            updateHighlight();
+        }
+ 
+        // แสดงข้อความบนจอ
+        function renderText() {
+            const display = document.getElementById('text-display');
+            display.innerHTML = '';
+ 
+            Array.from(currentText).forEach((char, index) => {
+                const span = document.createElement('span');
+                span.className = 'char';
+ 
+                if (char === ' ') {
+                    span.innerText = ' ';
+                } else if (char === '\n') {
+                    span.innerText = '↵\n';
+                } else {
+                    span.innerText = char;
+                }
+ 
+                if (index === currentIndex) span.classList.add('current');
+                display.appendChild(span);
+            });
+        }
+ 
+        // หาว่าตัวอักษรนี้อยู่ที่ปุ่มไหน และต้องกด Shift ไหม
+        function findKeyInfo(charToFind) {
+            if (charToFind === ' ') return { id: 'key-Space', shift: false };
+            if (charToFind === '\n') return { id: 'key-Enter', shift: false };
+ 
+            for (let r = 0; r < keyboardLayout.length; r++) {
+                for (let k = 0; k < keyboardLayout[r].length; k++) {
+                    const key = keyboardLayout[r][k];
+                    if (key.base === charToFind) return { id: `key-${key.base}`, shift: false };
+                    if (key.shift === charToFind) return { id: `key-${key.base}`, shift: true };
+                }
+            }
+            return null;
+        }
+ 
+        // อัปเดตไฮไลท์แป้นพิมพ์เพื่อใบ้
+        function updateHighlight() {
+            document.querySelectorAll('.key').forEach(k => {
+                k.classList.remove('glow', 'glow-shift');
+            });
+ 
+            if (currentIndex >= currentText.length) return;
+ 
+            const targetChar = currentText[currentIndex];
+            const keyInfo = findKeyInfo(targetChar);
+ 
+            if (keyInfo) {
+                const keyElement = document.getElementById(keyInfo.id);
+                if (keyElement) keyElement.classList.add('glow');
+ 
+                if (keyInfo.shift) {
+                    document.querySelectorAll('.key-shift-btn').forEach(btn => {
+                        btn.classList.add('glow-shift');
+                    });
+                }
+            }
+        }
+ 
+        // ตรวจจับการกดคีย์บอร์ด
+        window.addEventListener('keydown', (e) => {
+            if (!isPlaying || currentIndex >= currentText.length) return;
+ 
+            if (["Shift", "Control", "Alt", "Meta", "CapsLock", "Tab"].includes(e.key)) {
+                if (e.key === "Shift") {
+                    document.querySelectorAll('.key-shift-btn').forEach(btn => btn.classList.add('active'));
+                }
+                return;
+            }
+ 
+            e.preventDefault();
+ 
+            let pressedKey = e.key;
+            let targetChar = currentText[currentIndex];
+ 
+            if (pressedKey === "Enter") pressedKey = '\n';
+ 
+            const container = document.getElementById('game-container');
+            const spans = document.getElementById('text-display').childNodes;
+ 
+            if (pressedKey === targetChar) {
+                stats[currentLevel].correct++;
+                if (targetChar === ' ' || targetChar === '\n') {
+                    if (currentIndex > 0 && currentText[currentIndex - 1] !== ' ' && currentText[currentIndex - 1] !== '\n') {
+                        stats[currentLevel].words++;
+                    }
+                } else if (currentIndex === currentText.length - 1) {
+                    stats[currentLevel].words++;
+                }
+                updateStatsUI();
+ 
+                // อัปเดต streak/combo
+                streak++;
+                const milestone = streak > 0 && streak % 10 === 0;
+                updateStreakUI(milestone);
+                if (milestone) playSound('combo');
+ 
+                playSound('correct');
+                spans[currentIndex].classList.remove('current', 'incorrect');
+                spans[currentIndex].classList.add('correct');
+                setMascotState('state-happy');
+ 
+                const keyInfo = findKeyInfo(targetChar);
+                if (keyInfo) {
+                    const k = document.getElementById(keyInfo.id);
+                    if(k) {
+                        k.classList.add('active');
+                        setTimeout(() => k.classList.remove('active'), 150);
+                    }
+                }
+ 
+                currentIndex++;
+ 
+                if (currentIndex < currentText.length) {
+                    spans[currentIndex].classList.add('current');
+                    updateHighlight();
+                } else {
+                    isPlaying = false;
+                    document.querySelectorAll('.key').forEach(k => k.classList.remove('glow', 'glow-shift'));
+                    playSound('win');
+                    setMascotState('state-win');
+                    fireConfetti();
+ 
+                    container.classList.add('flash-win');
+ 
+                    setTimeout(() => {
+                        container.classList.remove('flash-win');
+                        startGame(currentLevel);
+                    }, 800);
+                }
+            } else {
+                stats[currentLevel].wrong++;
+                updateStatsUI();
+ 
+                streak = 0;
+                updateStreakUI(false);
+ 
+                playSound('wrong');
+                spans[currentIndex].classList.add('incorrect');
+                setMascotState('state-sad');
+                container.classList.add('shake', 'flash-wrong');
+                setTimeout(() => {
+                    container.classList.remove('shake', 'flash-wrong');
+                }, 300);
+            }
+        });
+ 
+        window.addEventListener('keyup', (e) => {
+            if (e.key === "Shift") {
+                document.querySelectorAll('.key-shift-btn').forEach(btn => btn.classList.remove('active'));
+            }
+        });
+ 
+        // สร้างคีย์บอร์ดตอนโหลดหน้าเว็บ
+        renderKeyboard();
+        updateStatsUI();
+        updateStreakUI(false);
+    </script>
+</body>
+</html>
+ 
+
