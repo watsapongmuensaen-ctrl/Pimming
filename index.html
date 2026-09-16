@@ -1,3 +1,6 @@
+
+
+Typing game · HTML
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -6,7 +9,7 @@
     <title>เกมฝึกพิมพ์ดีด: พิมพ์เพลิน</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&family=Mitr:wght@400;500;600;700&display=swap" rel="stylesheet">
-
+ 
     <style>
         :root{
             --bg-a: #FFF6E9;
@@ -24,9 +27,11 @@
             --sky: #3AA6D8;
             --card: #FFFFFF;
         }
-
+ 
         * { box-sizing: border-box; }
-
+ 
+        html, body { height: 100%; overflow: hidden; }
+ 
         body {
             font-family: 'Kanit', sans-serif;
             color: var(--ink);
@@ -36,14 +41,27 @@
                 var(--bg-a);
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
+            height: 100vh;
+            height: 100dvh;
         }
-
+ 
+        .app-wrap {
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            width: 100%;
+            max-width: 1150px;
+            margin: 0 auto;
+            padding: 0.6rem clamp(0.75rem, 2vw, 1.5rem);
+            gap: clamp(0.35rem, 1.2vh, 0.75rem);
+        }
+ 
         .display-font { font-family: 'Mitr', 'Kanit', sans-serif; }
-
+ 
         /* ---------- Hero ---------- */
         .hero-mascot {
-            font-size: 3.2rem;
+            font-size: clamp(1.6rem, 3.2vh, 2.6rem);
             display: inline-block;
             animation: idle-bob 2.6s ease-in-out infinite;
             filter: drop-shadow(0 6px 10px rgba(255,107,74,0.25));
@@ -52,7 +70,7 @@
             0%, 100% { transform: translateY(0) rotate(-2deg); }
             50% { transform: translateY(-8px) rotate(2deg); }
         }
-
+ 
         /* ---------- Level pills ---------- */
         .level-pill {
             position: relative;
@@ -71,22 +89,22 @@
         .level-pill.active .pill-check {
             display: inline;
         }
-
+ 
         /* ---------- Stat chips ---------- */
         .stat-chip {
             background: var(--card);
-            border-radius: 18px;
+            border-radius: 16px;
             box-shadow: 0 3px 0 rgba(43,33,64,0.06), 0 6px 18px rgba(43,33,64,0.05);
         }
         .stat-icon {
-            width: 38px; height: 38px;
-            border-radius: 12px;
+            width: 30px; height: 30px;
+            border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.15rem;
+            font-size: 0.95rem;
             flex-shrink: 0;
         }
         .stat-num { font-weight: 600; }
-
+ 
         /* ---------- Game card ---------- */
         #game-container {
             background: var(--card);
@@ -94,23 +112,30 @@
             box-shadow: 0 10px 0 rgba(43,33,64,0.05), 0 20px 40px rgba(43,33,64,0.08);
             position: relative;
             overflow: hidden;
+            flex: 1 1 auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
         #game-container.shake { animation: shake 0.3s; }
         #game-container.flash-wrong { background: var(--berry-soft); border-color: var(--berry); }
         #game-container.flash-win { background: var(--leaf-soft); border-color: var(--leaf); }
-
+ 
         .game-top-bar {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
+            flex: 0 0 auto;
         }
         .mascot-badge {
-            width: 56px; height: 56px;
+            width: 40px; height: 40px;
             border-radius: 50%;
             background: linear-gradient(135deg, #FFE3D3, #FFF3E4);
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.7rem;
+            font-size: 1.25rem;
+            flex-shrink: 0;
         }
         .mascot-badge.state-happy { animation: happy-pop 0.4s ease; }
         .mascot-badge.state-sad { animation: sad-wobble 0.35s ease; }
@@ -118,33 +143,37 @@
         @keyframes happy-pop { 0% { transform: scale(1); } 40% { transform: scale(1.25) rotate(-6deg); } 100% { transform: scale(1); } }
         @keyframes sad-wobble { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-10deg); } 75% { transform: rotate(10deg); } }
         @keyframes win-spin { 0% { transform: scale(1) rotate(0); } 50% { transform: scale(1.4) rotate(15deg); } 100% { transform: scale(1) rotate(0); } }
-
+ 
         .streak-badge {
-            display: flex; align-items: center; gap: 0.35rem;
+            display: flex; align-items: center; gap: 0.3rem;
             background: #FFF6E0;
             border: 2px solid var(--sun);
             border-radius: 999px;
-            padding: 0.3rem 0.9rem;
+            padding: 0.2rem 0.75rem;
+            font-size: 0.85rem;
             font-weight: 600;
             color: #A6740A;
             opacity: 0.45;
             transition: opacity 0.2s ease;
+            flex-shrink: 0;
         }
         .streak-badge.lit { opacity: 1; }
         .streak-badge.pop { animation: streak-pop 0.3s ease; }
         @keyframes streak-pop { 0% { transform: scale(1); } 50% { transform: scale(1.18); } 100% { transform: scale(1); } }
-
+ 
         .text-display {
             white-space: pre-wrap;
-            line-height: 1.8;
-            font-size: 2rem;
+            line-height: 1.6;
+            font-size: clamp(1.1rem, 4vh, 2rem);
             word-break: break-word;
+            overflow-y: auto;
+            max-height: 100%;
         }
         .char { color: #C9C2D6; transition: color 0.1s; }
         .char.correct { color: var(--leaf); font-weight: 600; }
         .char.incorrect { color: var(--berry); text-decoration: underline wavy; }
         .char.current { border-bottom: 4px solid var(--coral); color: var(--ink); border-radius: 2px; }
-
+ 
         .confetti-layer {
             position: absolute; inset: 0;
             pointer-events: none;
@@ -162,32 +191,33 @@
             0% { transform: translateY(0) rotate(0deg); opacity: 1; }
             100% { transform: translateY(320px) rotate(340deg); opacity: 0; }
         }
-
+ 
         /* ---------- Keyboard ---------- */
         .keyboard {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: clamp(3px, 0.7vh, 6px);
             max-width: 1050px;
             margin: 0 auto;
             background: #F1E9DE;
-            padding: 18px;
-            border-radius: 20px;
+            padding: clamp(6px, 1.4vh, 14px);
+            border-radius: 18px;
             box-shadow: inset 0 2px 0 rgba(255,255,255,0.6), 0 10px 24px rgba(43,33,64,0.08);
             width: 100%;
+            flex: 0 0 auto;
         }
         .key-row {
             display: flex;
             justify-content: center;
-            gap: 8px;
+            gap: clamp(3px, 0.7vh, 6px);
         }
         .key {
             background: #ffffff;
-            border-radius: 10px;
-            padding: 10px 5px;
-            min-width: 55px;
+            border-radius: 9px;
+            padding: clamp(3px, 0.8vh, 8px) 4px;
+            min-width: 42px;
             text-align: center;
-            font-size: 1.2rem;
+            font-size: 1rem;
             font-weight: 500;
             box-shadow: 0 3px 0 #d8cfc0;
             transition: all 0.1s;
@@ -195,21 +225,20 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            height: 65px;
+            height: clamp(34px, 7.2vh, 60px);
         }
-
+ 
         @media (max-width: 768px) {
-            .key { min-width: 25px; padding: 5px 2px; height: 50px; font-size: 0.9rem; }
-            .key .shift-char { font-size: 0.7rem; }
-            .key .base-char { font-size: 1rem; }
-            .finger-thumb { min-width: 150px !important; }
-            .key-enter, .key-shift { min-width: 50px !important; }
-            .text-display { font-size: 1.5rem !important; }
+            .key { min-width: 20px; padding: 3px 2px; font-size: 0.75rem; }
+            .key .shift-char { font-size: 0.6rem; }
+            .key .base-char { font-size: 0.85rem; }
+            .finger-thumb { min-width: 110px !important; }
+            .key-enter, .key-shift { min-width: 40px !important; }
         }
-
-        .key .shift-char { font-size: 0.9rem; color: var(--ink-soft); }
-        .key .base-char { font-size: 1.2rem; color: var(--ink); font-weight: 600; }
-
+ 
+        .key .shift-char { font-size: 0.75rem; color: var(--ink-soft); }
+        .key .base-char { font-size: 1rem; color: var(--ink); font-weight: 600; }
+ 
         .key.active {
             transform: translateY(2px);
             box-shadow: 0 0 0 #d8cfc0;
@@ -225,7 +254,7 @@
             background: linear-gradient(180deg, #A9D8FF, #3AA6D8);
             box-shadow: 0 0 0 3px rgba(58,166,216,0.3), 0 3px 0 #2563eb;
         }
-
+ 
         /* สีกำหนดตามนิ้วมือ (ก้อย นาง กลาง ชี้) */
         .finger-l4 { border-top: 4px solid #fca5a5; }
         .finger-l3 { border-top: 4px solid #fdba74; }
@@ -236,10 +265,10 @@
         .finger-r3 { border-top: 4px solid #c4b5fd; }
         .finger-r4 { border-top: 4px solid #f9a8d4; }
         .finger-thumb { border-top: 4px solid #cbd5e1; width: 100%; max-width: 900px; }
-
-        .key-enter { min-width: 100px; background: #DCEEFF; }
-        .key-shift { min-width: 110px; background: #F0EBE0; }
-
+ 
+        .key-enter { min-width: 80px; background: #DCEEFF; }
+        .key-shift { min-width: 90px; background: #F0EBE0; }
+ 
         @keyframes bounce {
             from { transform: translateY(-2px); }
             to { transform: translateY(-6px); }
@@ -250,88 +279,83 @@
             25% { transform: translateX(-5px); }
             75% { transform: translateX(5px); }
         }
-
+ 
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
         }
     </style>
 </head>
-
-<body class="pt-8 pb-16 px-4">
-
-    <div class="max-w-6xl mx-auto w-full flex-grow flex flex-col">
+ 
+<body>
+ 
+    <div class="app-wrap">
         <!-- Header -->
-        <div class="text-center mb-6">
+        <div class="text-center flex-shrink-0">
             <span class="hero-mascot">🦉</span>
-            <h1 class="display-font text-4xl font-bold mb-1" style="color:var(--coral-dark)">พิมพ์เพลิน</h1>
-            <p class="text-sm" style="color:var(--ink-soft)">เกมฝึกพิมพ์ดีดภาษาไทย สำหรับน้องๆ ประถม</p>
+            <h1 class="display-font font-bold" style="color:var(--coral-dark); font-size:clamp(1.25rem,2.6vh,1.75rem); line-height:1.1;">พิมพ์เพลิน</h1>
+            <p style="color:var(--ink-soft); font-size:clamp(0.7rem,1.5vh,0.85rem);">เกมฝึกพิมพ์ดีดภาษาไทย สำหรับน้องๆ ประถม · โดยครูวรรษพงษ์ หมื่นแสน</p>
         </div>
-
+ 
         <!-- Level Selector -->
-        <div class="flex flex-wrap justify-center gap-3 mb-6">
-            <button onclick="startGame(1)" id="level-btn-1" class="level-pill px-6 py-2 rounded-full shadow transition" style="background:#DFF6E8; color:#1B7A45;">
+        <div class="flex flex-wrap justify-center gap-2 flex-shrink-0">
+            <button onclick="startGame(1)" id="level-btn-1" class="level-pill px-4 py-1 rounded-full shadow transition text-sm" style="background:#DFF6E8; color:#1B7A45;">
                 <span class="pill-check">✓ </span>🌱 ระดับ 1: คำพื้นฐาน
             </button>
-            <button onclick="startGame(2)" id="level-btn-2" class="level-pill px-6 py-2 rounded-full shadow transition" style="background:#DFF0FF; color:#1660A8;">
+            <button onclick="startGame(2)" id="level-btn-2" class="level-pill px-4 py-1 rounded-full shadow transition text-sm" style="background:#DFF0FF; color:#1660A8;">
                 <span class="pill-check">✓ </span>📖 ระดับ 2: เรื่องราวสั้นๆ
             </button>
-            <button onclick="startGame(3)" id="level-btn-3" class="level-pill px-6 py-2 rounded-full shadow transition" style="background:#EEE2FF; color:#6B31C4;">
+            <button onclick="startGame(3)" id="level-btn-3" class="level-pill px-4 py-1 rounded-full shadow transition text-sm" style="background:#EEE2FF; color:#6B31C4;">
                 <span class="pill-check">✓ </span>📚 ระดับ 3: บทความยาว
             </button>
         </div>
-
+ 
         <!-- Stats Dashboard -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 w-full">
-            <div class="stat-chip p-4 flex items-center gap-3">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 w-full flex-shrink-0">
+            <div class="stat-chip px-3 py-2 flex items-center gap-2">
                 <div class="stat-icon" style="background:#DFF0FF;">📝</div>
                 <div>
-                    <div class="text-xs font-medium" style="color:var(--ink-soft)">พิมพ์แล้ว (คำ)</div>
-                    <div class="text-2xl stat-num display-font" style="color:var(--sky)" id="stat-words">0</div>
+                    <div class="text-xs font-medium leading-tight" style="color:var(--ink-soft)">พิมพ์แล้ว (คำ)</div>
+                    <div class="text-lg stat-num display-font leading-tight" style="color:var(--sky)" id="stat-words">0</div>
                 </div>
             </div>
-            <div class="stat-chip p-4 flex items-center gap-3">
+            <div class="stat-chip px-3 py-2 flex items-center gap-2">
                 <div class="stat-icon" style="background:var(--leaf-soft);">🎯</div>
                 <div>
-                    <div class="text-xs font-medium" style="color:var(--ink-soft)">ความแม่นยำ</div>
-                    <div class="text-2xl stat-num display-font" style="color:var(--leaf)" id="stat-correct-pct">0%</div>
+                    <div class="text-xs font-medium leading-tight" style="color:var(--ink-soft)">ความแม่นยำ</div>
+                    <div class="text-lg stat-num display-font leading-tight" style="color:var(--leaf)" id="stat-correct-pct">0%</div>
                 </div>
             </div>
-            <div class="stat-chip p-4 flex items-center gap-3">
+            <div class="stat-chip px-3 py-2 flex items-center gap-2">
                 <div class="stat-icon" style="background:var(--berry-soft);">❌</div>
                 <div>
-                    <div class="text-xs font-medium" style="color:var(--ink-soft)">พิมพ์ผิด (ครั้ง)</div>
-                    <div class="text-2xl stat-num display-font" style="color:var(--berry)" id="stat-wrong-count">0</div>
+                    <div class="text-xs font-medium leading-tight" style="color:var(--ink-soft)">พิมพ์ผิด (ครั้ง)</div>
+                    <div class="text-lg stat-num display-font leading-tight" style="color:var(--berry)" id="stat-wrong-count">0</div>
                 </div>
             </div>
-            <div class="stat-chip p-4 flex items-center gap-3">
+            <div class="stat-chip px-3 py-2 flex items-center gap-2">
                 <div class="stat-icon" style="background:#FFF1D6;">📉</div>
                 <div>
-                    <div class="text-xs font-medium" style="color:var(--ink-soft)">สัดส่วนที่ผิด</div>
-                    <div class="text-2xl stat-num display-font" style="color:#C9820A" id="stat-wrong-pct">0%</div>
+                    <div class="text-xs font-medium leading-tight" style="color:var(--ink-soft)">สัดส่วนที่ผิด</div>
+                    <div class="text-lg stat-num display-font leading-tight" style="color:#C9820A" id="stat-wrong-pct">0%</div>
                 </div>
             </div>
         </div>
-
+ 
         <!-- Game Area -->
-        <div id="game-container" class="p-6 md:p-8 rounded-3xl mb-8 text-center flex-grow flex flex-col justify-center min-h-[220px]">
+        <div id="game-container" class="px-4 py-2 md:px-6 md:py-3 rounded-3xl text-center">
             <div class="confetti-layer" id="confetti-layer"></div>
             <div class="game-top-bar">
                 <div class="mascot-badge" id="mascot-badge">🦉</div>
                 <div class="streak-badge" id="streak-badge">🔥 ต่อเนื่อง <span id="streak-count">0</span></div>
             </div>
-            <div id="text-display" class="text-display mb-4 font-medium" style="color:var(--ink)">กดเลือกระดับเพื่อเริ่มเล่น!</div>
-            <div class="text-sm" style="color:var(--ink-soft)">พิมพ์ตามตัวอักษรที่ปรากฏด้านบน หากพิมพ์ผิดหน้าจอจะสั่นและมีเสียงเตือน</div>
+            <div id="text-display" class="text-display font-medium" style="color:var(--ink)">กดเลือกระดับเพื่อเริ่มเล่น!</div>
+            <p class="flex-shrink-0" style="color:var(--ink-soft); font-size:clamp(0.65rem,1.3vh,0.8rem); margin-top:0.25rem;">พิมพ์ตามตัวอักษรที่ปรากฏด้านบน หากพิมพ์ผิดหน้าจอจะสั่นและมีเสียงเตือน</p>
         </div>
-
+ 
         <!-- Virtual Keyboard -->
-        <div class="keyboard" id="keyboard"></div>
+        <div class="keyboard flex-shrink-0" id="keyboard"></div>
     </div>
-
-    <!-- Creator Credit -->
-    <div class="fixed bottom-2 right-4 text-xs font-medium" style="color:var(--ink-soft)">
-        Created by ครูวรรษพงษ์ หมื่นแสน
-    </div>
-
+ 
     <script>
         // คลังคำศัพท์และบทความ
         const words = {
@@ -393,7 +417,7 @@
                 "พ่อค้า ขับ ลา บรรทุก เกลือ ข้าม แม่น้ำ \nลา ลื่น ตก น้ำ เกลือ จึง ละลาย หาย ไป \nลา รู้สึก เบา สบาย เมื่อ ลุก ขึ้น ยืน \nวันต่อมา ลา จึง แกล้ง ลื่น ตก น้ำ อีก \nพ่อค้า รู้ทัน จึง เปลี่ยน เป็น บรรทุก นุ่น แทน"
             ]
         };
-
+ 
         // โครงสร้างคีย์บอร์ด (Layout) แป้นพิมพ์เกษมณี
         // แก้ไข: เพิ่มปุ่ม ่ (ไม้เอก) และ ้ (ไม้โท) ที่แป้นเหย้า J และ H ซึ่งขาดหายไปจากต้นฉบับ
         // พร้อมปุ่ม Shift ที่ถูกต้องตามผังจริง: J+Shift = ๋ (ไม้จัตวา), และ ี+Shift = ๊ (ไม้ตรี) อยู่แล้วในแถวที่ 2
@@ -430,42 +454,42 @@
                 { base: ' ', shift: ' ', finger: 'finger-thumb' } // Spacebar
             ]
         ];
-
+ 
         let currentText = "";
         let currentIndex = 0;
         let isPlaying = false;
         let currentLevel = 1; // จำระดับปัจจุบัน
         let previousText = ""; // จำคำก่อนหน้าเพื่อไม่ให้สุ่มซ้ำ
         let streak = 0; // จำนวนตัวอักษรที่พิมพ์ถูกต่อเนื่อง
-
+ 
         // ระบบเก็บสถิติแยกตามระดับ
         let stats = {
             1: { words: 0, correct: 0, wrong: 0 },
             2: { words: 0, correct: 0, wrong: 0 },
             3: { words: 0, correct: 0, wrong: 0 }
         };
-
+ 
         // อัปเดตกระดานคะแนน
         function updateStatsUI() {
             const currentStats = stats[currentLevel];
             const total = currentStats.correct + currentStats.wrong;
-
+ 
             const correctPercent = total > 0 ? Math.round((currentStats.correct / total) * 100) : 0;
             const wrongPercent = total > 0 ? Math.round((currentStats.wrong / total) * 100) : 0;
-
+ 
             document.getElementById('stat-words').innerText = currentStats.words;
             document.getElementById('stat-correct-pct').innerText = correctPercent + '%';
             document.getElementById('stat-wrong-count').innerText = currentStats.wrong;
             document.getElementById('stat-wrong-pct').innerText = wrongPercent + '%';
         }
-
+ 
         // อัปเดตแถบปุ่มเลือกระดับให้โชว์ว่าอันไหน active
         function updateLevelButtons() {
             [1, 2, 3].forEach(lv => {
                 document.getElementById('level-btn-' + lv).classList.toggle('active', lv === currentLevel);
             });
         }
-
+ 
         // อัปเดตตัวนับ combo/streak
         function updateStreakUI(popped) {
             const badge = document.getElementById('streak-badge');
@@ -477,7 +501,7 @@
                 badge.classList.add('pop');
             }
         }
-
+ 
         // ตั้งอารมณ์มาสคอต
         function setMascotState(state) {
             const badge = document.getElementById('mascot-badge');
@@ -485,7 +509,7 @@
             void badge.offsetWidth;
             if (state) badge.classList.add(state);
         }
-
+ 
         // เอฟเฟกต์คอนเฟตตี้ตอนพิมพ์จบ
         function fireConfetti() {
             const layer = document.getElementById('confetti-layer');
@@ -502,20 +526,20 @@
                 setTimeout(() => span.remove(), (duration + 0.2) * 1000);
             }
         }
-
+ 
         // สร้างคีย์บอร์ด HTML
         function renderKeyboard() {
             const kbContainer = document.getElementById('keyboard');
             kbContainer.innerHTML = '';
-
+ 
             keyboardLayout.forEach(row => {
                 const rowDiv = document.createElement('div');
                 rowDiv.className = 'key-row';
-
+ 
                 row.forEach(key => {
                     const keyDiv = document.createElement('div');
                     keyDiv.className = `key finger-${key.finger}`;
-
+ 
                     if (key.base === ' ') {
                         keyDiv.innerHTML = `<span class="base-char">เว้นวรรค (Space)</span>`;
                         keyDiv.id = 'key-Space';
@@ -530,24 +554,24 @@
                         keyDiv.innerHTML = `<span class="shift-char">${key.shift}</span><span class="base-char">${key.base}</span>`;
                         keyDiv.id = `key-${key.base}`; // ใช้ base char เป็น ID สำหรับหาปุ่ม
                     }
-
+ 
                     rowDiv.appendChild(keyDiv);
                 });
-
+ 
                 kbContainer.appendChild(rowDiv);
             });
         }
-
+ 
         // ระบบเสียง (Web Audio API)
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playSound(type) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             const oscillator = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
-
+ 
             oscillator.connect(gainNode);
             gainNode.connect(audioCtx.destination);
-
+ 
             if (type === 'correct') {
                 oscillator.type = 'sine';
                 oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
@@ -580,51 +604,51 @@
                 oscillator.stop(audioCtx.currentTime + 0.12);
             }
         }
-
+ 
         // ฟังก์ชันเริ่มด่านและสุ่มคำแบบไม่ให้ซ้ำ
         function startGame(level) {
             currentLevel = level;
             const levelWords = words[level];
-
+ 
             // สุ่มจนกว่าจะไม่ได้คำ/บทความเดิมที่เพิ่งพิมพ์ไป
             let randomIndex;
             do {
                 randomIndex = Math.floor(Math.random() * levelWords.length);
             } while (levelWords[randomIndex] === previousText && levelWords.length > 1);
-
+ 
             currentText = levelWords[randomIndex];
             previousText = currentText; // เก็บไว้เช็คในรอบถัดไป
             currentIndex = 0;
             isPlaying = true; // เปิดสถานะเกมให้สามารถพิมพ์ได้
-
+ 
             updateStatsUI(); // ดึงสถิติของด่านปัจจุบันมาแสดง
             updateLevelButtons();
-
+ 
             // ปรับขนาดตัวอักษรตามความยาวบทความ
             const displayDiv = document.getElementById('text-display');
             if(level === 3) {
-                displayDiv.style.fontSize = '1.3rem';
+                displayDiv.style.fontSize = 'clamp(0.95rem, 2.6vh, 1.3rem)';
                 displayDiv.style.textAlign = 'left';
-                displayDiv.style.lineHeight = '1.6';
+                displayDiv.style.lineHeight = '1.5';
             } else {
-                displayDiv.style.fontSize = '2.5rem';
+                displayDiv.style.fontSize = 'clamp(1.2rem, 4.5vh, 2.2rem)';
                 displayDiv.style.textAlign = 'center';
-                displayDiv.style.lineHeight = '1.8';
+                displayDiv.style.lineHeight = '1.6';
             }
-
+ 
             renderText();
             updateHighlight();
         }
-
+ 
         // แสดงข้อความบนจอ
         function renderText() {
             const display = document.getElementById('text-display');
             display.innerHTML = '';
-
+ 
             Array.from(currentText).forEach((char, index) => {
                 const span = document.createElement('span');
                 span.className = 'char';
-
+ 
                 if (char === ' ') {
                     span.innerText = ' ';
                 } else if (char === '\n') {
@@ -632,17 +656,17 @@
                 } else {
                     span.innerText = char;
                 }
-
+ 
                 if (index === currentIndex) span.classList.add('current');
                 display.appendChild(span);
             });
         }
-
+ 
         // หาว่าตัวอักษรนี้อยู่ที่ปุ่มไหน และต้องกด Shift ไหม
         function findKeyInfo(charToFind) {
             if (charToFind === ' ') return { id: 'key-Space', shift: false };
             if (charToFind === '\n') return { id: 'key-Enter', shift: false };
-
+ 
             for (let r = 0; r < keyboardLayout.length; r++) {
                 for (let k = 0; k < keyboardLayout[r].length; k++) {
                     const key = keyboardLayout[r][k];
@@ -652,22 +676,22 @@
             }
             return null;
         }
-
+ 
         // อัปเดตไฮไลท์แป้นพิมพ์เพื่อใบ้
         function updateHighlight() {
             document.querySelectorAll('.key').forEach(k => {
                 k.classList.remove('glow', 'glow-shift');
             });
-
+ 
             if (currentIndex >= currentText.length) return;
-
+ 
             const targetChar = currentText[currentIndex];
             const keyInfo = findKeyInfo(targetChar);
-
+ 
             if (keyInfo) {
                 const keyElement = document.getElementById(keyInfo.id);
                 if (keyElement) keyElement.classList.add('glow');
-
+ 
                 if (keyInfo.shift) {
                     document.querySelectorAll('.key-shift-btn').forEach(btn => {
                         btn.classList.add('glow-shift');
@@ -675,28 +699,28 @@
                 }
             }
         }
-
+ 
         // ตรวจจับการกดคีย์บอร์ด
         window.addEventListener('keydown', (e) => {
             if (!isPlaying || currentIndex >= currentText.length) return;
-
+ 
             if (["Shift", "Control", "Alt", "Meta", "CapsLock", "Tab"].includes(e.key)) {
                 if (e.key === "Shift") {
                     document.querySelectorAll('.key-shift-btn').forEach(btn => btn.classList.add('active'));
                 }
                 return;
             }
-
+ 
             e.preventDefault();
-
+ 
             let pressedKey = e.key;
             let targetChar = currentText[currentIndex];
-
+ 
             if (pressedKey === "Enter") pressedKey = '\n';
-
+ 
             const container = document.getElementById('game-container');
             const spans = document.getElementById('text-display').childNodes;
-
+ 
             if (pressedKey === targetChar) {
                 stats[currentLevel].correct++;
                 if (targetChar === ' ' || targetChar === '\n') {
@@ -707,18 +731,18 @@
                     stats[currentLevel].words++;
                 }
                 updateStatsUI();
-
+ 
                 // อัปเดต streak/combo
                 streak++;
                 const milestone = streak > 0 && streak % 10 === 0;
                 updateStreakUI(milestone);
                 if (milestone) playSound('combo');
-
+ 
                 playSound('correct');
                 spans[currentIndex].classList.remove('current', 'incorrect');
                 spans[currentIndex].classList.add('correct');
                 setMascotState('state-happy');
-
+ 
                 const keyInfo = findKeyInfo(targetChar);
                 if (keyInfo) {
                     const k = document.getElementById(keyInfo.id);
@@ -727,9 +751,9 @@
                         setTimeout(() => k.classList.remove('active'), 150);
                     }
                 }
-
+ 
                 currentIndex++;
-
+ 
                 if (currentIndex < currentText.length) {
                     spans[currentIndex].classList.add('current');
                     updateHighlight();
@@ -739,9 +763,9 @@
                     playSound('win');
                     setMascotState('state-win');
                     fireConfetti();
-
+ 
                     container.classList.add('flash-win');
-
+ 
                     setTimeout(() => {
                         container.classList.remove('flash-win');
                         startGame(currentLevel);
@@ -750,10 +774,10 @@
             } else {
                 stats[currentLevel].wrong++;
                 updateStatsUI();
-
+ 
                 streak = 0;
                 updateStreakUI(false);
-
+ 
                 playSound('wrong');
                 spans[currentIndex].classList.add('incorrect');
                 setMascotState('state-sad');
@@ -763,13 +787,13 @@
                 }, 300);
             }
         });
-
+ 
         window.addEventListener('keyup', (e) => {
             if (e.key === "Shift") {
                 document.querySelectorAll('.key-shift-btn').forEach(btn => btn.classList.remove('active'));
             }
         });
-
+ 
         // สร้างคีย์บอร์ดตอนโหลดหน้าเว็บ
         renderKeyboard();
         updateStatsUI();
@@ -777,3 +801,5 @@
     </script>
 </body>
 </html>
+ 
+
